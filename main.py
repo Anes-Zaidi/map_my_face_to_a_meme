@@ -1,3 +1,4 @@
+import requests
 import cv2
 import numpy as np
 import mediapipe as mp
@@ -79,7 +80,11 @@ class MemeMatcher:
         for path, url in tasks:
             if not os.path.exists(path):
                 print(f"Downloading {path}...")
-                subprocess.run(['curl', '-L', url, '-o', path], shell=True)
+                with requests.get(url, stream=True) as r:
+                    r.raise_for_status()
+                    with open(path, 'wb') as f:
+                        for chunk in r.iter_content(chunk_size=8192):
+                            f.write(chunk)
                 print("Done.")
 
     def _load_meme_db(self):
